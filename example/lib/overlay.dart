@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_accessibility_service/constants.dart';
+import 'package:flutter_accessibility_service/flutter_accessibility_service.dart';
 
 class BlockingOverlay extends StatelessWidget {
   const BlockingOverlay({Key? key}) : super(key: key);
@@ -23,6 +25,18 @@ class BlockingOverlay extends StatelessWidget {
                 color: Colors.black,
                 fontSize: 25.0,
               ),
+            ),
+            const SizedBox(height: 15.0),
+            // Add the dismiss button
+            ElevatedButton(
+              onPressed: () async {
+                // Hide the overlay window
+                FlutterAccessibilityService.hideOverlayWindow();
+                // Perform the global action
+                FlutterAccessibilityService.performGlobalAction(
+                    GlobalAction.globalActionHome);
+              },
+              child: const Text('Dismiss'),
             ),
           ],
         ),

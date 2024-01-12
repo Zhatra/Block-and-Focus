@@ -21,7 +21,9 @@ void accessibilityOverlay() {
 }
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MaterialApp(
+    home: MyApp(),
+  ));
 }
 
 class MyApp extends StatefulWidget {
@@ -38,6 +40,10 @@ class _MyAppState extends State<MyApp> {
   bool foundSearchField = false;
   bool setText = false;
   bool clickFirstSearch = false;
+
+  // Text field for word input
+  TextEditingController wordController = TextEditingController();
+  List<String> wordsToDetect = [];
 
   @override
   void initState() {
@@ -56,11 +62,52 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         events.add(event);
       });
-      // automateScroll(event);
+
+      // Detect the word and activate showOverlayWindow
+      await handleWordDetection(event);
+
+      //automateScroll(event);
       // log("$event");
-      // automateWikipedia(event);
-      handleOverlay(event);
+      //automateWikipedia(event);
+      //handleOverlay(event);
     });
+  }
+
+  void _showSavedWords() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Saved Words'),
+        content: SingleChildScrollView(
+          child: Column(
+            children: wordsToDetect
+                .map((word) => Text(word))
+                .toList(), // Create a Text widget for each word
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> handleWordDetection(AccessibilityEvent event) async {
+    if (event.packageName !=
+        'slayer.accessibility.service.flutter_accessibility_service_example') {
+      for (final word in wordsToDetect) {
+        for (final node in event.subNodes ?? []) {
+          if (node.text.contains(word)) {
+            // Replace "Cancelar" with the actual word you want to detect
+            await FlutterAccessibilityService.showOverlayWindow();
+            break; // Stop iterating after finding the word
+          }
+        }
+      }
+    }
   }
 
   void handleOverlay(AccessibilityEvent event) async {
@@ -222,7 +269,36 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                 ),
-              )
+              ),
+              // Text field for word input
+              TextField(
+                controller: wordController,
+                decoration: const InputDecoration(
+                  labelText: 'Enter words to detect (comma-separated)',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Get new words from the text field
+                  final newWords = wordController.text.trim().split(',');
+
+                  // Add new words to the existing list
+                  setState(() {
+                    wordsToDetect.addAll(newWords);
+                  });
+
+                  // Clear text field
+                  wordController.clear();
+                },
+                child: const Text('Save Words'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Function to display saved words (will be defined in step 2)
+                  _showSavedWords();
+                },
+                child: const Text('View Saved Words'),
+              ),
             ],
           ),
         ),
