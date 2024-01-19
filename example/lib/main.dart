@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_accessibility_service/accessibility_event.dart';
 import 'package:flutter_accessibility_service/constants.dart';
@@ -101,7 +101,10 @@ class _MyAppState extends State<MyApp> {
       for (final word in wordsToDetect) {
         for (final node in event.subNodes ?? []) {
           if (node.text.contains(word)) {
-            // Replace "Cancelar" with the actual word you want to detect
+            // Save the word to SharedPreferences
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('word', word);
+
             await FlutterAccessibilityService.showOverlayWindow();
             break; // Stop iterating after finding the word
           }
